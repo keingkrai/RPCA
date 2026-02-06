@@ -325,7 +325,7 @@ def get_rank_selection(assets_dict, title="Selection"):
     
     return ranking, res
 
-def mainflow():
+def mainflow(ranking_size = 1):
     
     #Scraping Data
     page = scraping.tradingview_auto_login(os.getenv('TV_USERNAME'), os.getenv('TV_PASSWORD'))
@@ -375,7 +375,7 @@ def mainflow():
             try:
                 # แนะนำให้จำกัดจำนวนหุ้นต่อกลุ่ม (เช่น .head(20)) หากมีหุ้นในกลุ่มเยอะเกินไปเพื่อความเร็ว
                 s_rank, s_res = get_rank_selection(target_stocks, title=f"Stocks_{sector}")
-                top1 = s_rank[s_rank['signal'] == 1].index.tolist()[:1]
+                top1 = s_rank[s_rank['signal'] == 1].index.tolist()[:ranking_size]
                 stock_list.append(s_res)
                 
                 #ผลหุ้นที่ดีที่สุด
