@@ -23,29 +23,23 @@ def fetch_tvdatafeed(symbol):
     try:
         exch, sym = symbol.split(':')
     except ValueError:
-        print(f"❌ รูปแบบสัญลักษณ์ไม่ถูกต้อง: {symbol}")
         return None
     
-    attempt = 1
-    while attempt == 1: # วนลูปไม่จำกัดจนกว่าจะ return
+    max_retries = 10
+    for attempt in range(max_retries):
         try:
             data = tv.get_hist(symbol=sym, exchange=exch, interval=Interval.in_daily, n_bars=1100)
             
             if data is not None and not data.empty:
-                # ถ้าได้ข้อมูลแล้ว ให้คืนค่าทันทีและออกจากลูป while
-                attempt +=1
                 return data
-            else:
-                # ถ้าข้อมูลเป็นค่าว่าง (อาจจะเพราะรหัสผิด หรือไม่มีการซื้อขาย) 
-                # ในกรณีนี้ "วนไปก็ไม่มีข้อมูล" แนะนำให้ข้ามไปเลยเพื่อไม่ให้ลูปค้างตลอดกาล
-                # print(f"⚠️ {symbol} ไม่พบข้อมูลในระบบ (Ticker อาจผิด) - กำลังข้าม...")
-                return None
-                
-        except Exception as e:
-            # กรณี Error จากการเชื่อมต่อ ให้รอแล้วลองใหม่
-            # print(f"⏳ {symbol} เกิดข้อผิดพลาด: {e} - กำลังลองใหม่ครั้งที่ {attempt}...")
-            time.sleep(10) # รอ 10 วินาทีก่อนลองใหม่
-            # attempt += 1
+            
+            print(f"⚠️ {symbol} ไม่มีข้อมูล (ลองครั้งที่ {attempt + 1}/{max_retries})")
+            time.sleep(2)
+            
+        except Exception:
+            time.sleep(5)
+            
+    return None
             
 asset_sector = {
     
@@ -85,7 +79,7 @@ sector_allocation = {
     "Financials_China": "HSI:HSCI.F",
     "HealthCare_China": "HSI:HSCI.H",
     "Energy_China": "HSI:HSCI.E",
-    "Consumer Staples_China": "HSI:HSCI.S",
+    "Consumer Staples_China": "HSI:HSCI.CS",
     "Consumer Discretionary_China": "HSI:HSCI.C",
     "Telecommunications_China": "HSI:HSCI.T",
     "Industrials_China": "HSI:HSCI.I",
