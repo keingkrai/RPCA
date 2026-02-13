@@ -8,7 +8,6 @@
 ## 📊 Performance Overview
 ![Strategy Performance](performance_chart.png)
 ![Strategysector Performance](performance_chart_sectors.png) 
-*รูปแสดงกราฟผลตอบแทนสะสม (Cumulative Return) และการวิเคราะห์ผลตอบแทนรายปี (Yearly Performance)*
 
 ---
 
@@ -34,4 +33,5 @@
 ├── main2.ipynb          # Notebook สำหรับการทำ Research, RPCA Analysis และ Backtest
 ├── .env                 # ไฟล์เก็บรหัสผ่าน (Credentials) - *สำคัญ: ห้ามอัปโหลดขึ้น GitHub*
 └── requirements.txt     # รายการ Library ที่จำเป็นต้องใช้# RPCA
+
 
