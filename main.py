@@ -319,9 +319,76 @@ def get_rank_selection(assets_dict, title="Selection"):
     
     return ranking, res
 
-def mainflow(ranking_size = 1):
+# def mainflow(ranking_size = 1):
     
-    #Scraping Data
+#     #Scraping Data
+#     page = scraping.tradingview_auto_login(os.getenv('TV_USERNAME'), os.getenv('TV_PASSWORD'))
+#     usa_stocks = scraping.USA(page)
+#     thai_stocks = scraping.THAI(page)
+#     china_stocks = scraping.CHINA(page)
+
+#     stock["USA"] = usa_stocks
+#     stock["Thai"] = thai_stocks
+#     stock["China"] = china_stocks
+    
+#     #find a best assets
+#     country_rank, country_res = get_rank_selection(asset_sector, title="assests Selection")
+#     passed_countries = country_rank[country_rank['signal'] == 1].index.tolist()
+
+#     sec_rank, sec_res = get_rank_selection(sector_allocation, title="sector Selection")
+
+#     #select top 1
+#     passed_sector = sec_rank[sec_rank['signal'] == 1].index.tolist()[:1]
+#     # print("\n✅ กลุ่มที่ผ่านเกณฑ์การลงทุน:", passed_sector)
+
+#     # 1. เตรียมลิสต์สำหรับเก็บข้อมูลหุ้น
+#     stock_list = []
+
+#     # 2. วนลูปตามกลุ่มอุตสาหกรรมที่ "ผ่านเกณฑ์" (passed_sector)
+#     for sector in passed_sector:
+#         target_stocks = {}
+        
+#         # กรณีพิเศษสำหรับ GOLD
+#         if sector == "GOLD":
+#             target_stocks = {"GOLD": "OANDA:XAUUSD"}
+#         else:
+#             # แยกชื่อประเทศออกจากกลุ่ม เช่น 'Energy_Thai' -> 'Thai'
+#             country_key = sector.split('_')[-1] if '_' in sector else sector
+            
+#             # ดึงรายชื่อหุ้นจาก Nested Dictionary: stock[Country][Sector]
+#             # ใช้ .get() เพื่อป้องกัน Error หากไม่พบ Key
+#             tickers_list = stock.get(country_key, {}).get(sector, [])
+            
+#             # แปลงจาก List เป็น Dictionary รูปแบบ {Ticker: Ticker} สำหรับ get_rank_selection
+#             if tickers_list:
+#                 target_stocks = {s.split(':')[-1]: s for s in tickers_list}
+
+#         if target_stocks:
+#             print(f"--- 🔍 กำลังวิเคราะห์หุ้นรายตัวในกลุ่ม: {sector} ({len(target_stocks)} ตัว) ---")
+#             # ใช้ฟังก์ชันเดิมเพื่อดึงข้อมูลและคำนวณ RPCA Score รายตัว
+#             try:
+#                 # แนะนำให้จำกัดจำนวนหุ้นต่อกลุ่ม (เช่น .head(20)) หากมีหุ้นในกลุ่มเยอะเกินไปเพื่อความเร็ว
+#                 s_rank, s_res = get_rank_selection(target_stocks, title=f"Stocks_{sector}")
+#                 top1 = s_rank[s_rank['signal'] == 1].index.tolist()[:ranking_size]
+#                 stock_list.append(s_res)
+                
+#                 #ผลหุ้นที่ดีที่สุด
+#                 print(top1)
+#             except Exception as e:
+#                 print(f"⚠️ เกิดข้อผิดพลาดในกลุ่ม {sector}: {e}")
+        
+#         time.sleep(0.5)
+    
+#     return top1
+
+def mainflow(ranking_size = 1):
+    # เริ่มจับเวลารวมทั้งโปรเจกต์
+    overall_start = time.time()
+    
+    # --- STEP 1: Scraping Data ---
+    print("\n🚀 [Step 1/4] กำลังเริ่ม Scraping ข้อมูล...")
+    step1_start = time.time()
+    
     page = scraping.tradingview_auto_login(os.getenv('TV_USERNAME'), os.getenv('TV_PASSWORD'))
     usa_stocks = scraping.USA(page)
     thai_stocks = scraping.THAI(page)
@@ -331,56 +398,75 @@ def mainflow(ranking_size = 1):
     stock["Thai"] = thai_stocks
     stock["China"] = china_stocks
     
-    #find a best assets
+    step1_duration = time.time() - step1_start
+    print(f"✅ Step 1 เสร็จสิ้น: ใช้เวลา {step1_duration:.2f} วินาที")
+
+    # --- STEP 2: Asset (Country) Selection ---
+    print("\n🔍 [Step 2/4] กำลังวิเคราะห์ Asset Selection (Country Level)...")
+    step2_start = time.time()
+    
     country_rank, country_res = get_rank_selection(asset_sector, title="assests Selection")
     passed_countries = country_rank[country_rank['signal'] == 1].index.tolist()
+    
+    step2_duration = time.time() - step2_start
+    print(f"✅ Step 2 เสร็จสิ้น: ใช้เวลา {step2_duration:.2f} วินาที")
 
+    # --- STEP 3: Sector Selection ---
+    print("\n📊 [Step 3/4] กำลังวิเคราะห์ Sector Selection...")
+    step3_start = time.time()
+    
     sec_rank, sec_res = get_rank_selection(sector_allocation, title="sector Selection")
-
-    #select top 1
     passed_sector = sec_rank[sec_rank['signal'] == 1].index.tolist()[:1]
-    # print("\n✅ กลุ่มที่ผ่านเกณฑ์การลงทุน:", passed_sector)
+    
+    step3_duration = time.time() - step3_start
+    print(f"✅ Step 3 เสร็จสิ้น: ใช้เวลา {step3_duration:.2f} วินาที")
 
-    # 1. เตรียมลิสต์สำหรับเก็บข้อมูลหุ้น
+    # --- STEP 4: Individual Stock Analysis ---
+    print(f"\n💎 [Step 4/4] กำลังวิเคราะห์หุ้นรายตัวในกลุ่ม {passed_sector}...")
+    step4_start = time.time()
+    
     stock_list = []
+    top1 = []
 
-    # 2. วนลูปตามกลุ่มอุตสาหกรรมที่ "ผ่านเกณฑ์" (passed_sector)
     for sector in passed_sector:
         target_stocks = {}
-        
-        # กรณีพิเศษสำหรับ GOLD
         if sector == "GOLD":
             target_stocks = {"GOLD": "OANDA:XAUUSD"}
         else:
-            # แยกชื่อประเทศออกจากกลุ่ม เช่น 'Energy_Thai' -> 'Thai'
             country_key = sector.split('_')[-1] if '_' in sector else sector
-            
-            # ดึงรายชื่อหุ้นจาก Nested Dictionary: stock[Country][Sector]
-            # ใช้ .get() เพื่อป้องกัน Error หากไม่พบ Key
             tickers_list = stock.get(country_key, {}).get(sector, [])
-            
-            # แปลงจาก List เป็น Dictionary รูปแบบ {Ticker: Ticker} สำหรับ get_rank_selection
             if tickers_list:
                 target_stocks = {s.split(':')[-1]: s for s in tickers_list}
 
         if target_stocks:
-            print(f"--- 🔍 กำลังวิเคราะห์หุ้นรายตัวในกลุ่ม: {sector} ({len(target_stocks)} ตัว) ---")
-            # ใช้ฟังก์ชันเดิมเพื่อดึงข้อมูลและคำนวณ RPCA Score รายตัว
+            print(f"   --- 🔍 วิเคราะห์กลุ่ม: {sector} ({len(target_stocks)} ตัว) ---")
             try:
-                # แนะนำให้จำกัดจำนวนหุ้นต่อกลุ่ม (เช่น .head(20)) หากมีหุ้นในกลุ่มเยอะเกินไปเพื่อความเร็ว
                 s_rank, s_res = get_rank_selection(target_stocks, title=f"Stocks_{sector}")
                 top1 = s_rank[s_rank['signal'] == 1].index.tolist()[:ranking_size]
                 stock_list.append(s_res)
-                
-                #ผลหุ้นที่ดีที่สุด
-                print(top1)
+                print(f"   🎯 หุ้นแนะนำ: {top1}")
             except Exception as e:
-                print(f"⚠️ เกิดข้อผิดพลาดในกลุ่ม {sector}: {e}")
+                print(f"   ⚠️ Error ในกลุ่ม {sector}: {e}")
         
         time.sleep(0.5)
+    
+    step4_duration = time.time() - step4_start
+    overall_duration = time.time() - overall_start
+
+    # --- SUMMARY TABLE ---
+    print("\n" + "="*40)
+    print("⏱️  สรุปเวลาการประมวลผล (Timing Summary)")
+    print("-" * 40)
+    print(f"1. Scraping Data      : {step1_duration:>8.2f} วินาที")
+    print(f"2. Asset Selection    : {step2_duration:>8.2f} วินาที")
+    print(f"3. Sector Selection   : {step3_duration:>8.2f} วินาที")
+    print(f"4. Stock Analysis     : {step4_duration:>8.2f} วินาที")
+    print("-" * 40)
+    print(f"⏳ รวมเวลาทั้งสิ้น       : {overall_duration:>8.2f} วินาที")
+    print("="*40)
     
     return top1
 
 if __name__ == "__main__":
     
-    mainflow()
+    mainflow(10)

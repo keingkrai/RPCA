@@ -195,7 +195,9 @@ def CHINA(page):
         "Properties_Construction_China": "hsci-prop---con",
         "Conglomerates": "hsci-cong"
     }
-
+    
+    page.set.window.max()
+    
     results = {}
     count = 0
     try:
