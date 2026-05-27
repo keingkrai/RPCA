@@ -6,7 +6,6 @@
 ระบบเลือกหุ้นและจัดอันดับกลุ่มอุตสาหกรรมอัตโนมัติจาก 3 ตลาดหลัก (**USA, Thailand, China**) และ **ทองคำ (Gold)** โดยใช้เทคนิค **Robust Principal Component Analysis (RPCA)** เพื่อคัดกรองสัญญาณรบกวน (Noise) ออกจากแนวโน้มหลัก พร้อมกลยุทธ์การบริหารความเสี่ยงระดับมืออาชีพ
 
 ## 📊 Performance Overview
-![Diagram](diagram.png)
 ![Strategy Performance](performance_chart.png)
 ![Strategysector Performance](performance_chart_sectors.png) 
 
